@@ -4,7 +4,7 @@ import { Text, View , TouchableOpacity,StyleSheet,AsyncStorage,TextInput,Alert} 
 import User from './User'
 import styles from './styles'
 import firebase from 'firebase'
-// import {firebaseApp} from './ConfigFireBase'
+import {firebaseApp} from './ConfigFireBase'
 
 export default class Register extends Component {
     constructor(props){
@@ -12,8 +12,10 @@ export default class Register extends Component {
         this.state = {
             phone: '',
             name: '',
-            email:'',
-            password:''
+            userEmail:'',
+            password:'',
+            doMain: '@gmail.com',
+            email: ''
         }
     }
 
@@ -25,60 +27,77 @@ export default class Register extends Component {
         this.setState({[key]:val})
     }
 
-    submitForm = async () => {
-        if (this.state.phone.length < 10){
-            Alert.alert('error', 'wrong phone number')
-        }else if(this.state.name.length <2){
-            Alert.alert('error', 'wrong name')
-        }else{
-            await AsyncStorage.setItem('userPhone', this.state.phone)
-            User.phone = this.state.phone;
-            firebase.database().ref('users/' + User.phone).set({name: this.state.name});
-            firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password)
-                .then(()=>{
+    submitForm () {
+        // if (this.state.phone.length < 10){
+        //     Alert.alert('error', 'wrong phone number')
+        // }else if(this.state.name.length <2){
+        //     Alert.alert('error', 'wrong name')
+        // }else{       
+            this.props.navigation.navigate('Loading')
+            firebaseApp.auth().createUserWithEmailAndPassword(this.state.email = this.state.userEmail+ this.state.doMain, this.state.password)
+            .then(()=>{
+                const userUid = firebaseApp.auth().currentUser.uid
+                // User.userUid = userUid
+                // console.log(userUid)    
+                firebaseApp.database().ref('users/' + userUid).set({name:this.state.name})
                     Alert.alert(
-                        'Alert Title',
-                        'Register success',
-                        [
-                          {text: 'OK', },
-                        ],
-                        {cancelable: false},
-                      );
-                      this.setState({
-                          email:'',
-                          password:'',
-                          name:'',
-                          phone:''
-                      })
-                })
-            .catch(function(error) {
-                Alert.alert('Register fail')
+                    'Alert Title',
+                    'Register success',
+                    [
+                      {text: 'OK', onPress:()=>{this.props.navigation.navigate('Login')}},
+                    ],
+                    {cancelable: false},
+                  );
+                  this.setState({
+                      email:'',
+                      password:'',
+                      name:'',
+                      phone:''
+                  })
+            })
+            .catch(() => {
+                Alert.alert(
+                    'Alert Title',
+                    'error', 'false email or password',
+                    [
+                      {text: 'OK', onPress:()=>{this.props.navigation.navigate('Register')}},
+                    ],
+                    {cancelable: false},
+                  );
               });
-            // this.props.navigation.navigate('Login');
-        }
+              
+            // await AsyncStorage.setItem('userEmail', this.state.userEmail)
+            // User.userEmail = this.state.userEmail;
+            // User.email = this.state.email;
     }
 
     render() {
-        const {phone,name,email,password} = this.state
+        const {phone,name,email,password,doMain,userEmail} = this.state
         return (
             <View style={styles.container}>
-                <TextInput
+                 {/* <TextInput
                     style={styles.txtInput}
                     placeholder = 'your phone'
                     value = {phone}
                     onChangeText = {this.onChangeTxt('phone')}
-                />
+                /> */}
                 <TextInput
                     style={styles.txtInput}
                     placeholder = 'your name'
                     value = {name}
                     onChangeText = {this.onChangeTxt('name')}
+                /> 
+                <TextInput
+                    style={styles.txtInput}
+                    placeholder = 'your userEmail'
+                    value = {userEmail}
+                    onChangeText = {this.onChangeTxt('userEmail')}
                 />
                 <TextInput
                     style={styles.txtInput}
-                    placeholder = 'your email'
-                    value = {email}
-                    onChangeText = {this.onChangeTxt('email')}
+                    // placeholder = 'your userEmail'
+                    value = {doMain}
+                    // onChangeText = {this.onChangeTxt('email')}
                 />
                 <TextInput
                     style={styles.txtInput}
@@ -89,7 +108,10 @@ export default class Register extends Component {
                 />
                 <TouchableOpacity onPress={this.submitForm.bind(this)}>
                     <Text style={styles.textButton}> Register </Text>
-                </TouchableOpacity>              
+                </TouchableOpacity>    
+                <TouchableOpacity onPress={()=>{this.props.navigation.navigate('Login')}}>
+                    <Text style={styles.textButton}> Login </Text>
+                </TouchableOpacity>            
             </View>
         )
     }

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Text, View, TextInput,TouchableOpacity,AsyncStorage,FlatList,Image } from 'react-native'
+import { Text, View, TextInput,TouchableOpacity,AsyncStorage,FlatList,Image, StyleSheet } from 'react-native'
 import styles from './styles'
 import User from './User'
 import firebase from 'firebase'
@@ -8,18 +8,12 @@ import iconBack from '../icon/back.png';
 import iconUser from '../icon/user.png'
 
 export default class Chat extends Component {
-    // static navigationOptions = ({navigation}) => {
-    //     return{
-    //         header: null
-    //     // title: navigation.getParam('name', null)
-    // }}
-
     constructor(props){
         super(props);
         this.state = {
             person: {
               name:  props.navigation.getParam('name'),
-              phone:  props.navigation.getParam('phone')
+              userUid:  props.navigation.getParam('userUid')
             },
             textMessage: '',
             messageList: []
@@ -27,7 +21,7 @@ export default class Chat extends Component {
     }
 
     UNSAFE_componentWillMount(){
-        firebase.database().ref('messages').child(User.phone).child(this.state.person.phone) 
+        firebase.database().ref('messages').child(User.userUid).child(this.state.person.userUid) 
         .on('child_added', (value) => {
             this.setState((prevState) => {
                 return {
@@ -54,15 +48,15 @@ export default class Chat extends Component {
 
     sendMessage = async () => {
         if (this.state.textMessage.length > 0){
-            let msgId = firebase.database().ref('messages').child(User.phone).child(this.state.person.phone).push().key
+            let msgId = firebase.database().ref('messages').child(User.userUid).child(this.state.person.userUid).push().key
             let updates = {};
             let message = {
                 message: this.state.textMessage,
                 time: firebase.database.ServerValue.TIMESTAMP,
-                from: User.phone
+                from: User.userUid
             }
-            updates['messages/' + User.phone + '/' + this.state.person.phone+'/'+msgId] = message;
-            updates['messages/' + this.state.person.phone + '/' + User.phone+'/'+msgId] = message;
+            updates['messages/' + User.userUid + '/' + this.state.person.userUid+'/'+msgId] = message;
+            updates['messages/' + this.state.person.userUid + '/' + User.userUid+'/'+msgId] = message;
             firebase.database().ref().update(updates);
             this.setState({textMessage: ''});
         }
@@ -73,15 +67,15 @@ export default class Chat extends Component {
             <View style={{
                 flexDirection: 'row',
                 width: 300,
-                alignSelf: item.from === User.phone ? 'flex-end': 'flex-start',
-                backgroundColor: item.from === User.phone ? 'green': 'yellow',
+                alignSelf: item.from === User.userUid ? 'flex-end': 'flex-start',
+                backgroundColor: item.from === User.userUid ? '#4fc3f7': '#e0e0e0',
                 borderRadius: 5,
                 marginBottom:10
             }}> 
-                <Text style = {{color: 'red', padding:10, fontSize:16}}>
+                <Text style = {{color: 'black', padding:10, fontSize:16}}>
                     {item.message}
                 </Text>
-                <Text style ={{color: 'white', padding: 3,fontSize:13}}>{this.convertTime(item.time)}</Text>
+                <Text style ={{color: 'black', padding: 3,fontSize:13}}>{this.convertTime(item.time)}</Text>
             </View>
         )
     }
@@ -99,7 +93,7 @@ export default class Chat extends Component {
                             source={iconBack}
                         />
                     </TouchableOpacity>
-                    <Text style={styles.txtHeader}>{User.name}</Text>
+                    <Text style={styles.txtHeader}>{this.state.person.name}</Text>
                     <Text/>
                     {/* <TouchableOpacity onPress={() => { this.props.navigation.navigate('Profile') }}>
                         <Image
@@ -110,19 +104,28 @@ export default class Chat extends Component {
                 </View>
         )
         return (
-            <View>
+            <View style={{flex:1}}>
                 {header}
                 <FlatList
-                    style ={{height:500, marginTop:10}}
+                    style ={{flex:5, marginTop:10}}
                     data = {this.state.messageList}
                     renderItem = {this.renderRow}
                     keyExtractor = {(item,index) => index.toString()}
                 />
                 <View style = {{flexDirection: 'row',alignItems: 'center'}}> 
                <TextInput
-                style={styles.txtInput}
+                style={{
+                    flex:1,
+                    width:300,
+                    borderColor:'black',
+                    borderWidth:1,
+                    borderRadius:5,
+                    margin:10,
+                    paddingLeft:15
+                }}
                 value = {this.state.textMessage}
                 onChangeText = {this.handleChange('textMessage')}
+                multiline = {true}
                />
                <TouchableOpacity 
                onPress = {this.sendMessage.bind(this)}>
@@ -133,3 +136,5 @@ export default class Chat extends Component {
         )
     }
 }
+
+

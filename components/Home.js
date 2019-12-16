@@ -1,19 +1,14 @@
 import React, { Component } from 'react'
-import { Image, Text, View, TouchableOpacity, AsyncStorage, FlatList } from 'react-native'
+import { Image, Text, View, TouchableOpacity, AsyncStorage, FlatList, ActivityIndicator } from 'react-native'
 // import AsyncStorage from '@react-native-community/async-storage';
 import User from './User';
 import styles from './styles'
 import firebase from 'firebase'
 import iconUser from '../icon/user.png'
 import iconBack from '../icon/back.png'
+import {firebaseApp} from './ConfigFireBase'
 
 export default class Home extends Component {
-    // static navigationOptions = ({ navigation }) => {
-    //     return {
-    //         header: null
-    //     }
-    // }
-
     constructor(props) {
         super(props);
         this.state = {
@@ -22,11 +17,11 @@ export default class Home extends Component {
     }
 
     UNSAFE_componentWillMount() {
-        let dbRef = firebase.database().ref('users');
+        let dbRef = firebaseApp.database().ref('users');
         dbRef.on('child_added', (val) => {
             let person = val.val();
-            person.phone = val.key;
-            if (person.phone === User.phone) {
+            person.userUid = val.key;
+            if (person.userUid === User.userUid) {
                 User.name = person.name
             } else {
                 this.setState((pervState) => {
@@ -40,7 +35,7 @@ export default class Home extends Component {
 
     logOut = async () => {
         await AsyncStorage.clear();
-        this.props.navigation.navigate('Auth')
+        this.props.navigation.navigate('Login')
     }
 
     renderRow = ({ item }) => {
@@ -56,7 +51,7 @@ export default class Home extends Component {
     render() {
         const header = (
             <View style={styles.styleHeader}>
-                <TouchableOpacity onPress={() => { this.props.navigation.navigate('Login') }}>
+                <TouchableOpacity onPress={this.logOut.bind(this)}>
                     <Image
                         sytle={styles.styleImage}
                         source={iconBack}
@@ -71,16 +66,27 @@ export default class Home extends Component {
                 </TouchableOpacity>
             </View>
         )
-        return (
-            <View >
-                {header}
-                <FlatList
-                    style={{ height: 550, marginTop: 10 }}
-                    data={this.state.users}
-                    renderItem={this.renderRow}
-                    keyExtractor={(item) => item.phone}
-                />
-            </View>
-        )
+
+        if(this.state.users === null) {
+             
+                <View>
+                    {header}
+                    <ActivityIndicator/>
+                </View>
+            
+        } else{
+            return (
+                <View >
+                    {header}
+                    <FlatList
+                        style={{ height: 550, marginTop: 10 }}
+                        data={this.state.users}
+                        renderItem={this.renderRow}
+                        keyExtractor={(item) => item.userUid}
+                    />
+                </View>
+            )
+        }
+        
     }
 }
