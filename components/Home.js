@@ -12,7 +12,8 @@ export default class Home extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            users: []
+            users: [],
+            isLoading: true
         }
     }
 
@@ -26,7 +27,7 @@ export default class Home extends Component {
             } else {
                 this.setState((pervState) => {
                     return {
-                        users: [...pervState.users, person]
+                        users: [...pervState.users, person], isLoading: false
                     }
                 })
             }
@@ -48,6 +49,20 @@ export default class Home extends Component {
         )
     }
 
+    renderFooter = () => {
+        return (
+            this.state.isLoading?
+            <View style={{marginTop:15}}>
+                <ActivityIndicator size = 'large'/> 
+            </View>: null
+        )
+    }
+
+    // yeah  = async () => {
+    //     const a = await AsyncStorage.getItem('password')
+    //     console.log('yeah '+a)
+    // }
+
     render() {
         const header = (
             <View style={styles.styleHeader}>
@@ -67,26 +82,30 @@ export default class Home extends Component {
             </View>
         )
 
-        if(this.state.users === null) {
+        // if(this.state.users === null) {
              
-                <View>
-                    {header}
-                    <ActivityIndicator/>
-                </View>
+        //         <View>
+        //             {header}
+        //             <ActivityIndicator/>
+        //         </View>
             
-        } else{
+        // } else{
             return (
                 <View >
                     {header}
+                    {/* <TouchableOpacity onPress={this.yeah.bind(this)}>
+                        <Text>ohyeah</Text>
+                    </TouchableOpacity> */}
                     <FlatList
                         style={{ height: 550, marginTop: 10 }}
                         data={this.state.users}
                         renderItem={this.renderRow}
                         keyExtractor={(item) => item.userUid}
+                        ListFooterComponent = {this.renderFooter}
                     />
                 </View>
             )
         }
         
     }
-}
+// }

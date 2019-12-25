@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
-import { Text, View, TextInput, TouchableOpacity, AsyncStorage, Alert, Image, StyleSheet } from 'react-native'
+import { Text, View, TextInput, TouchableOpacity, AsyncStorage, Alert, Image } from 'react-native'
 import User from './User'
-// import styles from './styles'
+import styles from './styles'
 import firebase from 'firebase'
 
 import iconBack from '../icon/back.png'
@@ -18,8 +18,7 @@ export default class Profile extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            name: User.name,
-            userUid: User.userUid
+            name: User.name
         }
     }
 
@@ -27,29 +26,14 @@ export default class Profile extends Component {
         if (this.state.name.length < 2) {
             Alert.alert('Error', 'please enter valid name')
         } else if (User.name !== this.state.name) {
-            firebase.database().ref('users').child(User.userUid).set({ name: this.state.name });
+            firebase.database().ref('users').child(User.phone).set({ name: this.state.name });
             User.name = this.state.name;
-            Alert.alert('success', 'name changed successful')
+            Alert.alert('success', 'name changed successfull')
         }
     }
 
-    // changePhone = async () => {
-    //     if (this.state.phone.length <9 || this.state.phone.length >12) {
-    //         Alert.alert('Error', 'please enter valid phone')
-    //     } else if (User.phone !== this.state.phone) {
-    //         firebase.database().ref('users').child(User.phone = this.state.phone)
-    //         User.phone = this.state.phone;
-    //         Alert.alert('success', 'phone number changed successful')
-    //     }
-    // }
-
-    goBack() {
+    goBack(){
         this.props.navigation.goBack()
-    }
-
-    logOut = async () => {
-        await AsyncStorage.clear();
-        this.props.navigation.navigate('Login')
     }
 
     render() {
@@ -67,27 +51,19 @@ export default class Profile extends Component {
             <View style={{ flex: 1 }}>
                 {header}
                 <View style={styles.container}>
-                    <View style={{flexDirection:'row'}}>
-                        <TextInput
-                            style={styles.txtInput}
-                            value={this.state.name}
-                            onChangeText={this.handleChange('name')}
-                        />
-                        <TouchableOpacity style={styles.styleButton} onPress={this.changeName}>
-                            <Text style={styles.textButton}>Change Name</Text>
-                        </TouchableOpacity>
-                    </View>
-                    {/* <View style={{flexDirection:'row'}}>
-                        <TextInput
-                            style={styles.txtInput}
-                            value={this.state.phone}
-                            onChangeText={this.handleChange('phone')}
-                        />
-  
-                    </View> */}
+
+                    <Text style={{ fontSize: 20 }}> {User.phone} </Text>
+                    <TextInput
+                        style={styles.txtInput}
+                        value={this.state.name}
+                        onChangeText={this.handleChange('name')}
+                    />
+                    <TouchableOpacity style={styles.styleButton} onPress={this.changeName}>
+                        <Text style={styles.textButton}>Change Name</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.styleButton}
-                        onPress={this.logOut.bind(this)}
+                        onPress={() => { this.props.navigation.navigate('Login') }}
                     >
                         <Text style={styles.textButton}>Logout</Text>
                     </TouchableOpacity>
@@ -96,41 +72,4 @@ export default class Profile extends Component {
         )
     }
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        margin: 15
-    },
-    txtInput: {
-        height: 50,
-        width: 200,
-        borderColor: 'black',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingLeft: 10,
-        marginBottom: 10,
-        fontSize: 20
-    },
-    styleHeader: {
-        height: 50,
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        borderBottomColor: 'black',
-        borderBottomWidth: 1
-    },
-    styleButton: {
-        height: 40,
-        borderRadius: 10,
-        borderColor: 'black',
-        borderWidth: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginLeft:20,
-        padding: 10,
-        margin:5
-        
-    }
-})
 
